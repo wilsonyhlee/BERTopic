@@ -59,6 +59,10 @@ def visualize_topics_per_class(topic_model,
                    for key, value in topic_model.topic_names.items()}
     topics_per_class["Name"] = topics_per_class.Topic.map(topic_names)
     data = topics_per_class.loc[topics_per_class.Topic.isin(selected_topics), :]
+    unique_classes_sum = {
+        key: data[data.Class == key].Frequency.sum() for key in topics_per_class.Class.unique()
+    }    
+    data["ClassSum"] = data.Class.map(unique_classes_sum)
 
     # Add traces
     fig = go.Figure()
@@ -71,7 +75,7 @@ def visualize_topics_per_class(topic_model,
         topic_name = trace_data.Name.values[0]
         words = trace_data.Words.values
         if normalize_frequency:
-            x = normalize(trace_data.Frequency.values.reshape(1, -1))[0]
+            x = trace_data.Frequency / trace_data.ClassSum
         else:
             x = trace_data.Frequency
         fig.add_trace(go.Bar(y=trace_data.Class,
